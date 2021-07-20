@@ -18,7 +18,7 @@ public class MySpringBootRouter extends RouteBuilder {
 		AggregationStrategy aggregationStrategy = new TestAggregationStrategy(); 
 		
 		from("timer:myTimer?repeatCount=1")
-		.setBody(simple("{\"channel\": \"orderbook\", \"market\": \"BTC/USD\", \"type\": \"update\", \"data\": {\"time\": 1626139758.986094, \"checksum\": 195176195, \"bids\": [[32965.0, 0.0], [33962.0, 3.4015]], \"asks\": [[34230.0, 3.7167], [31400.0, 0.0]], \"action\": \"update\"}}"))
+		.setBody(simple("{\"channel\": \"orderbook\", \"market\": \"BTC/USD\", \"type\": \"update\", \"data\": {\"time\": 1626740557.0772882, \"checksum\": 3289781594, \"bids\": [], \"asks\": [[30849.0, 0.0], [34964.0, 0.0033]], \"action\": \"update\"}}"))
 		.setHeader(MongoDbConstants.CRITERIA, constant(Filters.eq("market", "BTC/USD")))
 		.enrich("mongodb:mongo?database=k2_dev&collection=orderbooks&operation=findOneByQuery", aggregationStrategy)
 		//.bean(TestBean.class, "getUpdatedOrderBook")

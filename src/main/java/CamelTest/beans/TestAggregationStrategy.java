@@ -30,23 +30,23 @@ public class TestAggregationStrategy implements AggregationStrategy {
 		List<List<Double>> rAsks = resourceContext.read("$.data.asks");
 		
 		// Check checksum... 
-		DecimalFormat bidsFormat = new DecimalFormat("0.0###"); 
+		DecimalFormat qtyFormat = new DecimalFormat("0.0###"); 
 		String checksumString = ""; 
 		for (int i=0; i<Math.max(rBids.size(),rAsks.size()); i++) {
 			if (i==0) {
 				if(rBids.get(i) != null) {
-					checksumString = checksumString + String.valueOf(rBids.get(i).get(0)) + ":" + bidsFormat.format(rBids.get(i).get(1));
+					checksumString = checksumString + String.valueOf(rBids.get(i).get(0)) + ":" + qtyFormat.format(rBids.get(i).get(1));
 				}
 				if(rAsks.get(i) != null) {
-					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + bidsFormat.format(rAsks.get(i).get(1));
+					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + qtyFormat.format(rAsks.get(i).get(1));
 				}
 			}
 			else {
 				if(rBids.get(i) != null) {
-					checksumString = checksumString + ":" + String.valueOf(rBids.get(i).get(0)) + ":" + bidsFormat.format(rBids.get(i).get(1));
+					checksumString = checksumString + ":" + String.valueOf(rBids.get(i).get(0)) + ":" + qtyFormat.format(rBids.get(i).get(1));
 				}
 				if(rAsks.get(i) != null) {
-					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + bidsFormat.format(rAsks.get(i).get(1));
+					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + qtyFormat.format(rAsks.get(i).get(1));
 				}
 			}
 			 
@@ -64,7 +64,7 @@ public class TestAggregationStrategy implements AggregationStrategy {
 			int index = getByKey(bid.get(0), rBids);
 			if (index > -1) {
 				// Remove from list is the update has a qty of zero
-				if (bid.get(1).equals(0.0)) {
+				if (bid.get(1)==0) {
 					rBids.remove(index);
 				}
 				// Otherwise update
@@ -74,7 +74,7 @@ public class TestAggregationStrategy implements AggregationStrategy {
 			}
 			// If not in the list, add it 
 			else {
-				if (Double.compare(bid.get(1), 0.0)>0) rBids.add(bid);
+				if (bid.get(1)>0) rBids.add(bid);
 			} 
 		}
 		
@@ -84,7 +84,7 @@ public class TestAggregationStrategy implements AggregationStrategy {
 			int index = getByKey(ask.get(0), rAsks);
 			if (index > -1) {
 				// Remove from list is the update has a qty of zero
-				if (ask.get(1).equals(0.0)) {
+				if (ask.get(1)==0) {
 					rAsks.remove(index);
 				}
 				// Otherwise update
@@ -95,14 +95,14 @@ public class TestAggregationStrategy implements AggregationStrategy {
 			// If not in the list, add it 
 			else {
 				System.out.println(ask.get(1));
-				if (Double.compare(ask.get(1), 0.0)>0) rAsks.add(ask);
+				if (ask.get(1)>0) rAsks.add(ask);
 			} 
 		}
 		
 		// Sort bids ascending 
-		rBids.sort((o1, o2) -> o1.get(0).compareTo(o2.get(0)));
+		rBids.sort((o1, o2) -> o2.get(0).compareTo(o1.get(0)));
 		// Sore asks descending 
-		rAsks.sort((o1, o2) -> o2.get(0).compareTo(o1.get(0)));
+		rAsks.sort((o1, o2) -> o1.get(0).compareTo(o2.get(0)));
 		
 		// Remove > 100 from the bottom
 		while(rBids.size()>100) rBids.remove(rBids.size()-1);
@@ -116,18 +116,18 @@ public class TestAggregationStrategy implements AggregationStrategy {
 		for (int i=0; i<Math.max(rBids.size(),rAsks.size()); i++) {
 			if (i==0) {
 				if(rBids.get(i) != null) {
-					checksumString = checksumString + rBids.get(i).get(0) + ":" + rBids.get(i).get(1);
+					checksumString = checksumString + String.valueOf(rBids.get(i).get(0)) + ":" + qtyFormat.format(rBids.get(i).get(1));
 				}
 				if(rAsks.get(i) != null) {
-					checksumString = checksumString + rAsks.get(i).get(0) + ":" + rAsks.get(i).get(1);
+					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + qtyFormat.format(rAsks.get(i).get(1));
 				}
 			}
 			else {
 				if(rBids.get(i) != null) {
-					checksumString = checksumString + ":" + rBids.get(i).get(0) + ":" + rBids.get(i).get(1);
+					checksumString = checksumString + ":" + String.valueOf(rBids.get(i).get(0)) + ":" + qtyFormat.format(rBids.get(i).get(1));
 				}
 				if(rAsks.get(i) != null) {
-					checksumString = checksumString + ":" + rAsks.get(i).get(0) + ":" + rAsks.get(i).get(1);
+					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + qtyFormat.format(rAsks.get(i).get(1));
 				}
 			}
 			 
@@ -136,6 +136,7 @@ public class TestAggregationStrategy implements AggregationStrategy {
 		crc32.update(checksumString.getBytes());
 		System.out.println("The CS: " + updateContext.read("$.data.checksum"));
 		System.out.println("My CS: " + crc32.getValue());
+		System.out.println(checksumString); 
 		
 		for (List<Double> rBid : rBids) {
 			System.out.println(rBid);
