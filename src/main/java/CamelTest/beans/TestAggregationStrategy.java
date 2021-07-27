@@ -24,40 +24,11 @@ public class TestAggregationStrategy implements AggregationStrategy {
 		List<List<Double>> bids = updateContext.read("$.data.bids");
 		List<List<Double>> asks = updateContext.read("$.data.asks");
 		
-		// Parse the resource payload, the data to be enriched from MongoDB
+		// Parse the resource payload, the OrderBook object in Mango to be enriched with the update 
 		DocumentContext resourceContext = JsonPath.parse(resource.getMessage().getBody());
 		List<List<Double>> rBids = resourceContext.read("$.data.bids");
 		List<List<Double>> rAsks = resourceContext.read("$.data.asks");
 		
-		// Check checksum... 
-		DecimalFormat qtyFormat = new DecimalFormat("0.0###"); 
-		String checksumString = ""; 
-		for (int i=0; i<Math.max(rBids.size(),rAsks.size()); i++) {
-			if (i==0) {
-				if(rBids.get(i) != null) {
-					checksumString = checksumString + String.valueOf(rBids.get(i).get(0)) + ":" + qtyFormat.format(rBids.get(i).get(1));
-				}
-				if(rAsks.get(i) != null) {
-					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + qtyFormat.format(rAsks.get(i).get(1));
-				}
-			}
-			else {
-				if(rBids.get(i) != null) {
-					checksumString = checksumString + ":" + String.valueOf(rBids.get(i).get(0)) + ":" + qtyFormat.format(rBids.get(i).get(1));
-				}
-				if(rAsks.get(i) != null) {
-					checksumString = checksumString + ":" + String.valueOf(rAsks.get(i).get(0)) + ":" + qtyFormat.format(rAsks.get(i).get(1));
-				}
-			}
-			 
-		}
-		CRC32 crc = new CRC32(); 
-		crc.update(checksumString.getBytes());
-		System.out.println("Before String: " + checksumString);
-		System.out.println("Before CS: " + crc.getValue());
-		
-		
-
 		// Add or update the OrderBook with the bid updates
 		for (List<Double> bid : bids) {			
 			// Check if the bid is already in the list
@@ -109,10 +80,8 @@ public class TestAggregationStrategy implements AggregationStrategy {
 		while(rAsks.size()>100) rAsks.remove(rAsks.size()-1); 
 		
 		// Check checksum... 
-		NumberFormatter nf = new NumberFormatter();
-		
-
-		checksumString = ""; 
+		DecimalFormat qtyFormat = new DecimalFormat("0.0###");
+		String checksumString = ""; 
 		for (int i=0; i<Math.max(rBids.size(),rAsks.size()); i++) {
 			if (i==0) {
 				if(rBids.get(i) != null) {
@@ -134,25 +103,14 @@ public class TestAggregationStrategy implements AggregationStrategy {
 		}
 		CRC32 crc32 = new CRC32(); 
 		crc32.update(checksumString.getBytes());
-		System.out.println("The CS: " + updateContext.read("$.data.checksum"));
+		int checksum = updateContext.read("$.data.checksum");
+		
+		System.out.println("The CS: " + checksum);
 		System.out.println("My CS: " + crc32.getValue());
-		System.out.println(checksumString); 
+		//System.out.println(checksumString); 
 		
-		for (List<Double> rBid : rBids) {
-			System.out.println(rBid);
-		}
+		resource.getIn().setHeader("checksumPass", (checksum == crc32.getValue()) ? "true" : "false");
 		
-		
-		
-		//System.out.println(resource.getMessage().getBody());
-		
-		//ArrayList test = (ArrayList) resource.getMessage().getBody(List.class);
-		//Object test = resource.getMessage().getBody();
-		//LinkedHashMap map = (LinkedHashMap) test; 
-		//System.out.println("Test: " + map.get("channel"));
-
-		
-		//System.out.println("Resource: " + resource.getMessage().getBody()); 
 		return resource; 
 	}
 	

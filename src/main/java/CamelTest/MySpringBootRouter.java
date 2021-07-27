@@ -15,15 +15,24 @@ public class MySpringBootRouter extends RouteBuilder {
 	
 	@Override
 	public void configure() {	
+		
+		from("timer:myTimer?repeatCount=1")
+		.setBody(simple("{market:\"BTC/USD\"}"))
+		.to("mongodb:mongo?database=k2_dev&collection=orderbooks&operation=remove");
+		
+		
+		/*
 		AggregationStrategy aggregationStrategy = new TestAggregationStrategy(); 
 		
 		from("timer:myTimer?repeatCount=1")
-		.setBody(simple("{\"channel\": \"orderbook\", \"market\": \"BTC/USD\", \"type\": \"update\", \"data\": {\"time\": 1626740557.0772882, \"checksum\": 3289781594, \"bids\": [], \"asks\": [[30849.0, 0.0], [34964.0, 0.0033]], \"action\": \"update\"}}"))
+		.setBody(simple("{\"channel\": \"orderbook\", \"market\": \"BTC/USD\", \"type\": \"update\", \"data\": {\"time\": 1626740557.1696389, \"checksum\": 1536678386, \"bids\": [[30819.0, 4.1211], [28758.0, 0.0]], \"asks\": [], \"action\": \"update\"}}"))
 		.setHeader(MongoDbConstants.CRITERIA, constant(Filters.eq("market", "BTC/USD")))
 		.enrich("mongodb:mongo?database=k2_dev&collection=orderbooks&operation=findOneByQuery", aggregationStrategy)
 		//.bean(TestBean.class, "getUpdatedOrderBook")
 		.log("Test: ${body}")
+		.log("Header: ${headers.checksumPass}")
 		.to("mongodb:mongo?database=k2_dev&collection=orderbooks&operation=save");
+		*/
 		
 		/*// Subscribe to channels
 		from("timer:myTimer?repeatCount=1")
